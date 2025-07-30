@@ -1,121 +1,65 @@
-image: cirrusci/flutter:stable
+name: Flutter CI
 
-stages:
-  - analyze
-    - test
+"on":
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
 
-    analyze:
-      stage: analyze
-        script:
-            - flutter pub get
-                - flutter analyze
+jobs:
+  analyze_and_test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.x'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      working-directory: ./app_wallpaper
+      run: flutter pub get
+    
+    - name: Analyze code
+      working-directory: ./app_wallpaper
+      run: flutter analyze
+    
+    - name: Run tests
+      working-directory: ./app_wallpaper
+      run: flutter test
 
-                test:
-                  stage: test
-                    script:
-                        - flutter test
-                        ```
-
-                        ---
-
-                        ## 🧪 Bước 2: Thêm báo cáo JUnit
-
-                        ### Cài đặt thêm `tojunit`:
-
-                        ```bash
-                        flutter pub global activate junitreport
-                        ```
-
-                        ### Cập nhật file `.gitlab-ci.yml`:
-
-                        ```yaml
-                        test:
-                          stage: test
-                            script:
-                                - flutter pub global activate junitreport
-                                    - flutter test --machine | tojunit > report.xml
-                                      artifacts:
-                                          reports:
-                                                junit: report.xml
-                                                    paths:
-                                                          - report.xml
-                                                          ```
-
-                                                          ---
-
-                                                          ## 📊 Bước 3: Thêm báo cáo Code Coverage
-
-                                                          ### Cập nhật `.gitlab-ci.yml`:
-
-                                                          ```yaml
-                                                          coverage:
-                                                            stage: test
-                                                              script:
-                                                                  - flutter test --coverage
-                                                                      - genhtml coverage/lcov.info -o coverage
-                                                                        artifacts:
-                                                                            paths:
-                                                                                  - coverage/lcov.info
-                                                                                        - coverage/index.html
-                                                                                        ```
-
-                                                                                        ### (Tùy chọn) Cài thêm công cụ:
-
-                                                                                        ```bash
-                                                                                        sudo apt-get install lcov
-                                                                                        sudo apt-get install genhtml
-                                                                                        ```
-
-                                                                                        ---
-
-                                                                                        ## 📦 Bước 4: Build APK và App Bundle
-
-                                                                                        Thêm các stage build:
-
-                                                                                        ```yaml
-                                                                                        build_apk:
-                                                                                          stage: build
-                                                                                            script:
-                                                                                                - flutter build apk --release
-                                                                                                  artifacts:
-                                                                                                      paths:
-                                                                                                            - build/app/outputs/flutter-apk/app-release.apk
-
-                                                                                                            build_appbundle:
-                                                                                                              stage: build
-                                                                                                                script:
-                                                                                                                    - flutter build appbundle --release
-                                                                                                                      artifacts:
-                                                                                                                          paths:
-                                                                                                                                - build/app/outputs/bundle/release/app-release.aab
-                                                                                                                                ```
-
-                                                                                                                                ---
-
-                                                                                                                                ## 📚 Bước 5: Gợi ý bài tập cho sinh viên
-
-                                                                                                                                | Bài tập                                        | Mục tiêu             |
-                                                                                                                                | ---------------------------------------------- | -------------------- |
-                                                                                                                                | Tạo pipeline `analyze` + `test`                | Làm quen CI          |
-                                                                                                                                | Xuất báo cáo JUnit                             | Xử lý artifacts      |
-                                                                                                                                | Thêm báo cáo code coverage                     | Kiểm soát chất lượng |
-                                                                                                                                | Build APK/App Bundle                           | Triển khai thực tế   |
-                                                                                                                                | (Nâng cao) Deploy lên Firebase hoặc Play Store | Kết hợp Fastlane     |
-
-                                                                                                                                ---
-
-                                                                                                                                ## 💡 Tài nguyên tham khảo
-
-                                                                                                                                * [cirrusci/flutter Docker Image](https://hub.docker.com/r/cirrusci/flutter)
-                                                                                                                                * [GitLab CI/CD Flutter Example](https://docs.gitlab.com/ee/ci/examples/)
-                                                                                                                                * [JUnit Report via tojunit](https://pub.dev/packages/junitreport)
-                                                                                                                                * [Coverage in Flutter CI/CD](https://blog.flutter.wtf/flutter-test-coverage-via-gitlab-ci-cd)
-                                                                                                                                * [Medium - Flutter CI/CD with GitLab](https://medium.com/@tendallas/flutter-ci-cd-with-gitlab-da93edabbc93)
-
-                                                                                                                                ---
-
-                                                                                                                                ## ✅ Kết luận
-
-                                                                                                                                Pipeline GitLab giúp tự động hóa kiểm thử và build ứng dụng Flutter hiệu quả. Sinh viên có thể áp dụng từng bước để hiểu rõ cách hoạt động của CI/CD và vận dụng vào dự án thực tế.
-
-                                                                                                                              
+  build:
+    runs-on: ubuntu-latest
+    needs: analyze_and_test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.x'
+        channel: 'stable'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Get dependencies
+      working-directory: ./app_wallpaper
+      run: flutter pub get
+    
+    - name: Build APK
+      working-directory: ./app_wallpaper
+      run: flutter build apk --release
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release
+        path: app_wallpaper/build/app/outputs/flutter-apk/app-release.apk
