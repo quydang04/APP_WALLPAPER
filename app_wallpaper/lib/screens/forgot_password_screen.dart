@@ -67,13 +67,26 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // Icon
-                  Icon(
-                    _isSuccess ? Icons.check_circle : Icons.lock_reset,
-                    size: 80,
-                    color: _isSuccess
-                        ? AppTheme.successColor
-                        : AppTheme.primaryColor,
+                  // App logo
+                  Center(
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                        border: _isSuccess
+                            ? Border.all(color: AppTheme.successColor, width: 2)
+                            : null,
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/favicon.jpg',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
                   ).animate().fadeIn().scale(
                     begin: const Offset(0.8, 0.8),
                     end: const Offset(1, 1),

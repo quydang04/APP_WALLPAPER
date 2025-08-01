@@ -72,13 +72,15 @@ class _LoginScreenState extends State<LoginScreen> {
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: AppTheme.primaryColor,
+                        color: Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
                       ),
-                      child: const Icon(
-                        Icons.wallpaper,
-                        color: Colors.white,
-                        size: 40,
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/favicon.jpg',
+                          fit: BoxFit.cover,
+                        ),
                       ),
                     ),
                   ).animate().fadeIn().scale(

@@ -73,6 +73,32 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // App logo
+                  Center(
+                    child: Container(
+                      width: 80,
+                      height: 80,
+                      decoration: BoxDecoration(
+                        color: Colors.transparent,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: Image.asset(
+                          'assets/images/favicon.jpg',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ).animate().fadeIn().scale(
+                    begin: const Offset(0.8, 0.8),
+                    end: const Offset(1, 1),
+                    duration: 300.ms,
+                    curve: Curves.easeOutBack,
+                  ),
+
+                  const SizedBox(height: 24),
+
                   // Title
                   Text(
                     'Create Account',

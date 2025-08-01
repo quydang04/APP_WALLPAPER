@@ -61,7 +61,7 @@ class _SplashScreenState extends State<SplashScreen> {
                   width: 120,
                   height: 120,
                   decoration: BoxDecoration(
-                    color: AppTheme.primaryColor,
+                    color: Colors.transparent,
                     borderRadius: BorderRadius.circular(24),
                     boxShadow: [
                       BoxShadow(
@@ -71,10 +71,12 @@ class _SplashScreenState extends State<SplashScreen> {
                       ),
                     ],
                   ),
-                  child: const Icon(
-                    Icons.wallpaper,
-                    color: Colors.white,
-                    size: 60,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(24),
+                    child: Image.asset(
+                      'assets/images/favicon.jpg',
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 )
                 .animate()
