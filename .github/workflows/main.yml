@@ -1,0 +1,65 @@
+name: Flutter CI
+
+"on":
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  analyze_and_test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.x'
+        channel: 'stable'
+    
+    - name: Get dependencies
+      working-directory: ./app_wallpaper
+      run: flutter pub get
+    
+    - name: Analyze code
+      working-directory: ./app_wallpaper
+      run: flutter analyze
+    
+    - name: Run tests
+      working-directory: ./app_wallpaper
+      run: flutter test
+
+  build:
+    runs-on: ubuntu-latest
+    needs: analyze_and_test
+    
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Flutter
+      uses: subosito/flutter-action@v2
+      with:
+        flutter-version: '3.19.x'
+        channel: 'stable'
+    
+    - name: Setup Java
+      uses: actions/setup-java@v3
+      with:
+        distribution: 'zulu'
+        java-version: '17'
+    
+    - name: Get dependencies
+      working-directory: ./app_wallpaper
+      run: flutter pub get
+    
+    - name: Build APK
+      working-directory: ./app_wallpaper
+      run: flutter build apk --release
+    
+    - name: Upload APK artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: app-release
+        path: app_wallpaper/build/app/outputs/flutter-apk/app-release.apk
