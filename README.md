@@ -165,7 +165,6 @@ This project is licensed under the [License Type] - see the [LICENSE](LICENSE) f
 
 **quydang04**
 - GitHub: [@quydang04](https://github.com/quydang04)
-- [Add other contact information as needed]
 
 ## 📝 Changelog
 
