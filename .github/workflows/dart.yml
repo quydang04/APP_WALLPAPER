@@ -1,4 +1,4 @@
-name: Dart
+name: Flutter CI
 
 on:
   push:
@@ -13,20 +13,25 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: dart-lang/setup-dart@9a04e6d73cca37bd455e0608d7e5092f881fd603
+      # ✅ Setup Flutter
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.19.6' # or whatever version you're using
+          channel: stable
 
       - name: Install dependencies
-        run: dart pub get
+        run: flutter pub get
         working-directory: app_wallpaper
 
       # - name: Verify formatting
-      #   run: dart format --output=none --set-exit-if-changed .
+      #   run: flutter format --set-exit-if-changed .
       #   working-directory: app_wallpaper
 
       - name: Analyze project source
-        run: dart analyze
+        run: flutter analyze
         working-directory: app_wallpaper
 
       - name: Run tests
-        run: dart test
+        run: flutter test
         working-directory: app_wallpaper
