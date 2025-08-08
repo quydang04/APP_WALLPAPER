@@ -1,0 +1,37 @@
+name: Flutter CI
+
+on:
+  push:
+    branches: [ "fdvbg" ]
+  pull_request:
+    branches: [ "fdvbg" ]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # ✅ Setup Flutter
+      - name: Install Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.32.8'  # ✅ Ensures Dart 3.8 support
+          channel: stable
+          
+      - name: Install dependencies
+        run: flutter pub get
+        working-directory: app_wallpaper
+
+      # - name: Verify formatting
+      #   run: flutter format --set-exit-if-changed .
+      #   working-directory: app_wallpaper
+
+      - name: Analyze project source
+        run: flutter analyze
+        working-directory: app_wallpaper
+
+      - name: Run tests
+        run: flutter test
+        working-directory: app_wallpaper
