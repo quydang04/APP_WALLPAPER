@@ -10,6 +10,7 @@ class AppConstants {
   static const String routeLogin = "/login";
   static const String routeRegister = "/register";
   static const String routeForgotPassword = "/forgot-password";
+  static const String routeResetPassword = "/reset-password";
   static const String routeProfile = "/profile";
   static const String routeWallpaperDetail = "/wallpaper/:id";
   static const String routeCategory = "/category/:id";
@@ -17,6 +18,7 @@ class AppConstants {
   static const String routeUpload = "/upload";
   static const String routePremium = "/premium";
   static const String routeSettings = "/settings";
+  static const String routestock = "C:/Users/admin/Downloads/APP_WALLPAPER-main/uploads";
 
   // Shared Preferences Keys
   static const String prefKeyUser = "user";
@@ -52,6 +54,8 @@ class AppConstants {
 
   // Anime characters
   static final List<String> animeCharacters = [
+    'Shinji',
+    'Ichigo'
     'Naruto',
     'Sasuke',
     'Luffy',

@@ -9,6 +9,8 @@ import '../providers/auth_provider.dart';
 import '../providers/premium_provider.dart';
 import '../providers/wallpaper_provider.dart';
 import '../widgets/custom_button.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'dart:async';
 
 class WallpaperDetailScreen extends StatefulWidget {
   final String wallpaperId;
@@ -24,6 +26,33 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
   bool _isLiked = false;
   bool _isDownloading = false;
   bool _showInfo = true;
+  late BannerAd _bannerAd;
+  bool _isBannerAdLoaded = false;
+  Timer? _adTimer;
+  InterstitialAd? _interstitialAd;
+
+
+  @override
+  void initState() {
+    super.initState();
+
+    _bannerAd = BannerAd(
+      adUnitId: 'ca-app-pub-3940256099942544/6300978111', // Test banner ID
+      size: AdSize.banner,
+      request: const AdRequest(),
+      listener: BannerAdListener(
+        onAdLoaded: (Ad ad) {
+          setState(() {
+            _isBannerAdLoaded = true;
+          });
+        },
+        onAdFailedToLoad: (Ad ad, LoadAdError error) {
+          ad.dispose();
+          debugPrint('Failed to load a banner ad: $error');
+        },
+      ),
+    )..load();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -153,27 +182,10 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                               fontWeight: FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Subscribe to Premium or watch videos to unlock',
-                            style: TextStyle(
-                              color: Colors.white70,
-                              fontSize: 16,
-                            ),
-                            textAlign: TextAlign.center,
-                          ),
                           const SizedBox(height: 24),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
-                              CustomButton(
-                                text: 'Go Premium',
-                                onPressed: () {
-                                  context.push('/premium');
-                                },
-                                backgroundColor: AppTheme.accentColor,
-                                width: 150,
-                              ),
                               const SizedBox(width: 16),
                               CustomButton(
                                 text: 'Watch Videos',
@@ -194,6 +206,18 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                           ),
                         ],
                       ),
+                    ),
+                  ),
+
+                if (_isBannerAdLoaded)
+                  Positioned(
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    child: Container(
+                      height: _bannerAd.size.height.toDouble(),
+                      width: _bannerAd.size.width.toDouble(),
+                      child: AdWidget(ad: _bannerAd),
                     ),
                   ),
 
@@ -284,7 +308,8 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                                   children: [
                                     _buildInfoChip(
                                       icon: Icons.favorite,
-                                      label: '${wallpaper.likes}',
+                                      label: '${
+                                          _isLiked ? wallpaper.likes + 1 : wallpaper.likes}',
                                       color: Colors.red,
                                     ),
                                     const SizedBox(width: 16),
@@ -303,14 +328,27 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                                       ),
                                   ],
                                 ),
+                                if (wallpaper.isPremium && !isPremiumAccessible)
+                                  CustomButton(
+                                    text: 'Go Premium',
+                                    onPressed: () {
+                                      context.push('/premium');
+                                    },
+                                    backgroundColor: AppTheme.accentColor,
+                                    width: 150,
+                                  ),
                                 const SizedBox(height: 16),
                                 CustomButton(
                                   text: canDownload
                                       ? 'Download Wallpaper'
-                                      : 'Premium Content',
+                                      : 'Watch Ad to download',
                                   onPressed: canDownload
                                       ? () => _downloadWallpaper(wallpaper)
-                                      : () {}, // Empty function instead of null
+                                      : () => _showVideoAdDialog(
+                                              context,
+                                              premiumProvider,
+                                              wallpaper,
+                                            ), // Empty function instead of null
                                   isLoading: _isDownloading,
                                   backgroundColor: canDownload
                                       ? AppTheme.primaryColor
@@ -414,56 +452,66 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
       context: context,
       builder: (context) => AlertDialog(
         title: const Text('Watch Video Ads'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Watch ${premiumProvider.requiredVideosToUnlock} video ads to unlock this premium wallpaper.',
-              style: AppTheme.bodyStyle,
-            ),
-            const SizedBox(height: 16),
-            LinearProgressIndicator(
-              value: premiumProvider.unlockProgressPercentage,
-              backgroundColor: Colors.grey[300],
-              valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Progress: ${premiumProvider.watchedVideos}/${premiumProvider.requiredVideosToUnlock}',
-              style: AppTheme.captionStyle,
-            ),
-          ],
+        content: Consumer<PremiumProvider>(
+          builder: (context, premiumProvider, _) {
+            return Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Watch ${premiumProvider.requiredVideosToUnlock} video ads to unlock this premium wallpaper.',
+                  style: AppTheme.bodyStyle,
+                ),
+                const SizedBox(height: 16),
+                LinearProgressIndicator(
+                  value: premiumProvider.unlockProgressPercentage,
+                  backgroundColor: Colors.grey[300],
+                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Progress: ${premiumProvider.watchedVideos}/${premiumProvider.requiredVideosToUnlock}',
+                  style: AppTheme.captionStyle,
+                ),
+              ],
+            );
+          },
         ),
         actions: [
           TextButton(
-            onPressed: () {
-              Navigator.of(context).pop();
-            },
+            onPressed: () => Navigator.of(context).pop(),
             child: const Text('Cancel'),
           ),
           ElevatedButton(
             onPressed: () {
-              // Simulate watching a video ad
-              premiumProvider.watchVideo();
+              // Load and show the rewarded ad, same as before
+              RewardedAd.load(
+                adUnitId: 'ca-app-pub-3940256099942544/5224354917',
+                request: const AdRequest(),
+                rewardedAdLoadCallback: RewardedAdLoadCallback(
+                  onAdLoaded: (RewardedAd ad) {
+                    ad.fullScreenContentCallback = FullScreenContentCallback(
+                      onAdDismissedFullScreenContent: (ad) => ad.dispose(),
+                      onAdFailedToShowFullScreenContent: (ad, error) => ad.dispose(),
+                    );
 
-              // Check if enough videos have been watched
-              if (premiumProvider.watchedVideos >=
-                  premiumProvider.requiredVideosToUnlock) {
-                premiumProvider.unlockWallpaper(wallpaper.id);
-                Navigator.of(context).pop();
+                    ad.show(
+                      onUserEarnedReward: (ad, reward) {
+                        premiumProvider.watchVideo();
 
-                // Refresh the screen
-                setState(() {});
-              } else {
-                // Show progress
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      'Video ${premiumProvider.watchedVideos}/${premiumProvider.requiredVideosToUnlock} watched',
-                    ),
-                  ),
-                );
-              }
+                        if (premiumProvider.watchedVideos >= premiumProvider.requiredVideosToUnlock) {
+                          premiumProvider.unlockWallpaper(wallpaper.id);
+                          Navigator.of(context).pop();
+                        }
+                      },
+                    );
+                  },
+                  onAdFailedToLoad: (LoadAdError error) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('Ad failed to load: $error')),
+                    );
+                  },
+                ),
+              );
             },
             child: const Text('Watch Ad'),
           ),

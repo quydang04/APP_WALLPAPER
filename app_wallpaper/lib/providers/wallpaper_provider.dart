@@ -1,9 +1,21 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/wallpaper.dart';
 import '../models/category.dart';
+import 'package:http/http.dart' as http;
 import '../constants/app_constants.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
+import 'package:dio/dio.dart';
+import 'package:permission_handler/permission_handler.dart' as perm;
+import 'dart:async';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
+import 'auth_provider.dart';
+
+
 
 class WallpaperProvider with ChangeNotifier {
   List<Wallpaper> _wallpapers = [];
@@ -13,12 +25,16 @@ class WallpaperProvider with ChangeNotifier {
   String _searchQuery = '';
   String? _selectedCategoryId;
 
+
+
   List<Wallpaper> get wallpapers => _wallpapers;
   List<Wallpaper> get downloadedWallpapers => _downloadedWallpapers;
   List<Category> get categories => _categories;
   bool get isLoading => _isLoading;
   String get searchQuery => _searchQuery;
   String? get selectedCategoryId => _selectedCategoryId;
+
+
 
   // Filtered wallpapers based on search and category
   List<Wallpaper> get filteredWallpapers {
@@ -70,6 +86,7 @@ class WallpaperProvider with ChangeNotifier {
   List<Wallpaper> get recentWallpapers {
     final sorted = List<Wallpaper>.from(_wallpapers);
     sorted.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+    print(sorted[0].title);
     return sorted.take(10).toList();
   }
 
@@ -86,21 +103,54 @@ class WallpaperProvider with ChangeNotifier {
   }
 
   // Fetch wallpapers
-  Future<void> fetchWallpapers() async {
+  Future<void> fetchWallpapers(bool premi) async {
+    _wallpapers = _generateMockWallpapers();
     _isLoading = true;
     notifyListeners();
-
+    final url = Uri.parse('http://10.0.2.2/testwallpapering/get_wallpapers.php');
     try {
-      // This would be an API call in a real app
-      // For now, we'll simulate fetching data
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final data = jsonDecode(response.body);
+
+        if (data['status'] == 'success') {
+          final List wallpapersData = data['data']; // <-- Access the List
+
+          for (var entry in wallpapersData) {
+            Wallpaper g = Wallpaper(
+              id: entry['img_id'].toString(),
+              title: entry['image_title'] ?? '',
+              imageUrl: entry['link'] ?? '',
+              thumbnailUrl: null,
+              authorId: entry['authorId'].toString(),
+              authorName: entry['authorName'] ?? '',
+              categories: [entry['cat_id'].toString()],
+              tags: (entry['tags'] as String).split(',').map((tag) => tag.trim()).toList(),
+              likes: int.parse(entry['likes']),  // Placeholder if not in DB yet
+              downloads: 0,  // Placeholder if not in DB yet
+              isPremium: entry['premium'] == '1',
+              isAnime: entry['isAnime'] == '1',
+              animeCharacter: entry['animecharacter'] == '1' ? 'Anime Character Name' : null,
+              createdAt: DateTime.parse(entry['createdAt']),
+              isApproved: entry['isApproved'] == '1',
+            );
+            _wallpapers.add(g);
+          }
+        } else {
+          print('API returned failure status');
+        }
+      } else {
+        print('Failed to load data. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error occurred: $e');
+      print('Error occurred: $e');
       await Future.delayed(const Duration(seconds: 1));
 
-      // Mock wallpapers
-      _wallpapers = _generateMockWallpapers();
 
       // Load downloaded wallpapers from SharedPreferences
       await _loadDownloadedWallpapers();
-    } catch (e) {
       debugPrint('Error fetching wallpapers: $e');
     } finally {
       _isLoading = false;
@@ -134,16 +184,60 @@ class WallpaperProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> requestStoragePermission() async {
+    print("dsg");
+    var status = await perm.Permission.manageExternalStorage.request();
+
+    if (status.isGranted) {
+      return true;
+    } else if (status.isPermanentlyDenied) {
+      await perm.openAppSettings(); // Ask user to enable manually
+      return false;
+    } else {
+      // User tapped "Deny"
+      return false;
+    }
+  }
+
+
   // Download wallpaper
   Future<bool> downloadWallpaper(Wallpaper wallpaper) async {
     try {
-      // Add to downloaded wallpapers if not already there
-      if (!_downloadedWallpapers.any((w) => w.id == wallpaper.id)) {
-        _downloadedWallpapers.add(wallpaper);
-        await _saveDownloadedWallpapers();
-        notifyListeners();
+      // Request permission
+      bool granted = await requestStoragePermission();
+      if (!granted) {
+        print('Permission denied');
+        return false;
       }
-      return true;
+
+      try {
+        // Get device directory (Downloads on Android)
+        Directory? dir;
+        if (Platform.isAndroid) {
+          dir = Directory('/storage/emulated/0/Download'); // Common downloads folder
+        } else {
+          dir = await getApplicationDocumentsDirectory(); // iOS fallback
+        }
+        String filename = wallpaper.title+'.jpg';
+        String fullPath = '${dir.path}/$filename';
+
+        // Download image
+        Dio dio = Dio();
+        await dio.download(wallpaper.imageUrl, fullPath);
+        String id = wallpaper.id;
+        await http.post(Uri.parse('http://10.0.2.2/testwallpapering/postdl.php?img_id=$id'));
+
+        print('Image saved to $fullPath');
+        if (!_downloadedWallpapers.any((w) => w.id == wallpaper.id)) {
+          _downloadedWallpapers.add(wallpaper);
+          await _saveDownloadedWallpapers();
+          notifyListeners();
+        }
+        return true;
+      } catch (e) {
+        print('Error saving image: $e');
+        return false;
+      }
     } catch (e) {
       debugPrint('Error downloading wallpaper: $e');
       return false;
@@ -155,11 +249,8 @@ class WallpaperProvider with ChangeNotifier {
     try {
       final index = _wallpapers.indexWhere((w) => w.id == wallpaperId);
       if (index != -1) {
-        final updatedWallpaper = _wallpapers[index].copyWith(
-          likes: _wallpapers[index].likes + 1,
-        );
-        _wallpapers[index] = updatedWallpaper;
-        notifyListeners();
+        await http.post(Uri.parse('http://10.0.2.2/testwallpapering/like.php?img_id=$wallpaperId'));
+        _isLoading = false;
       }
       return true;
     } catch (e) {
@@ -167,19 +258,68 @@ class WallpaperProvider with ChangeNotifier {
       return false;
     }
   }
-
   // Upload wallpaper
-  Future<bool> uploadWallpaper(Wallpaper wallpaper) async {
+  Future<bool> uploadWallpaper(Wallpaper wallpaperee, bool premi) async {
+    print(path.basename(wallpaperee.imageUrl));
     _isLoading = true;
     notifyListeners();
+    final Map<String, dynamic> jsonBody = {
+      "img_id": wallpaperee.id,
+      "image_title": wallpaperee.title,
+      "description": "",  // Add actual description if needed
+      "animecharacter": wallpaperee.animeCharacter,
+      "premium": wallpaperee.isPremium,
+      "cat_id": 1,
+      "authorId": wallpaperee.authorId,
+      "authorName": wallpaperee.authorName,
+      "link": "http://10.0.2.2/testwallpapering/sdf/"+path.basename(wallpaperee.imageUrl),
+      "tags": wallpaperee.tags.join(','), // CSV string if needed
+      "isAnime": wallpaperee.isAnime,
+      "createdAt": wallpaperee.createdAt.toIso8601String(),
+      "isApproved": wallpaperee.isApproved
+    };
+
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://10.0.2.2/testwallpapering/upload.php'),
+    );
+
+    request.files.add(await http.MultipartFile.fromPath(
+      'image',
+      wallpaperee.imageUrl,
+      filename: path.basename(wallpaperee.imageUrl),
+    ));
+
+    var response = await request.send();
+
+    if (response.statusCode == 200) {
+      print('Image uploaded successfully');
+    } else {
+      print('Failed to upload image');
+    }
+
+    final Uri apiUrl = Uri.parse('http://10.0.2.2/testwallpapering/upload_wallpaper.php');
 
     try {
-      // This would be an API call in a real app
-      // For now, we'll simulate uploading
+      final response = await http.post(
+        apiUrl,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: jsonEncode(jsonBody),
+      );
+
+      if (response.statusCode == 200) {
+        print('Wallpaper uploaded successfully!');
+        print('Response: ${response.body}');
+      } else {
+        print('Failed to upload wallpaper. Status: ${response.statusCode}');
+        print('Response: ${response.body}');
+      }
       await Future.delayed(const Duration(seconds: 1));
 
-      _wallpapers.add(wallpaper);
       notifyListeners();
+      fetchWallpapers(premi);
       return true;
     } catch (e) {
       debugPrint('Error uploading wallpaper: $e');

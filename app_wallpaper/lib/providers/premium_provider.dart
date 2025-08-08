@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import '../models/user.dart';
+
 
 class PremiumProvider with ChangeNotifier {
   int _watchedVideos = 0;
@@ -59,8 +61,11 @@ class PremiumProvider with ChangeNotifier {
     try {
       // This would be an actual payment processing in a real app
       await Future.delayed(const Duration(seconds: 1));
-
+      String ID = user.id;
+      final Uri apiUrl = Uri.parse(
+          'http://10.0.2.2/testwallpapering/gopremium.php?user_id=$ID');
       // Update user with premium status
+      await http.post(apiUrl);
       final updatedUser = user.copyWith(isPremium: true);
       updateUser(updatedUser);
 

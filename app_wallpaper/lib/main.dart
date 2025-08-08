@@ -7,8 +7,14 @@ import 'providers/theme_provider.dart';
 import 'providers/wallpaper_provider.dart';
 import 'providers/premium_provider.dart';
 import 'utils/router.dart';
+import 'package:google_mobile_ads/google_mobile_ads.dart';
 
-void main() {
+Future<void> main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await MobileAds.instance.initialize();
+  WidgetsFlutterBinding.ensureInitialized();
+  MobileAds.instance.initialize();
+
   runApp(const MyApp());
 }
 

@@ -31,6 +31,7 @@ class _UploadScreenState extends State<UploadScreen> {
   List<String> _selectedCategories = ['anime'];
   bool _isUploading = false;
   String? _errorMessage;
+  bool _canToggleSwitch = false;
 
   final ImagePicker _picker = ImagePicker();
 
@@ -49,6 +50,14 @@ class _UploadScreenState extends State<UploadScreen> {
           _imageFile = File(image.path);
         });
       }
+      final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final wallpaperProvider = Provider.of<WallpaperProvider>(
+        context,
+        listen: false,
+      );
+      final user = authProvider.currentUser;
+      _canToggleSwitch = user!.isPremium;
+      print(_canToggleSwitch);
     } catch (e) {
       setState(() {
         _errorMessage = 'Failed to pick image: $e';
@@ -97,7 +106,8 @@ class _UploadScreenState extends State<UploadScreen> {
           isApproved: false, // Requires approval
         );
 
-        final success = await wallpaperProvider.uploadWallpaper(newWallpaper);
+        print(newWallpaper.title);
+        final success = await wallpaperProvider.uploadWallpaper(newWallpaper, user.isPremium);
 
         if (success && mounted) {
           // Show success message and navigate back
@@ -314,8 +324,10 @@ class _UploadScreenState extends State<UploadScreen> {
                         setState(() {
                           if (selected) {
                             _selectedCategories.add(category.id);
+                            print(_selectedCategories);
                           } else {
                             _selectedCategories.remove(category.id);
+                            print(_selectedCategories);
                           }
                         });
                       },
@@ -339,11 +351,13 @@ class _UploadScreenState extends State<UploadScreen> {
                     'Premium wallpapers are only available to premium users',
                   ),
                   value: _isPremium,
-                  onChanged: (value) {
+                  onChanged: _canToggleSwitch
+                      ? (value) {
                     setState(() {
                       _isPremium = value;
                     });
-                  },
+                  }
+                      : null, // disables the switch
                   activeColor: AppTheme.accentColor,
                 ).animate().fadeIn(delay: 600.ms),
 

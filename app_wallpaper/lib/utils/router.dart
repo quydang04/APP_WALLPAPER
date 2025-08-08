@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../constants/app_constants.dart';
 import '../screens/splash_screen.dart';
+import '../screens/reset_password_screen.dart';
 import '../screens/login_screen.dart';
 import '../screens/register_screen.dart';
 import '../screens/forgot_password_screen.dart';
@@ -13,6 +14,7 @@ import '../screens/profile_screen.dart';
 import '../screens/upload_screen.dart';
 import '../screens/premium_screen.dart';
 import '../screens/settings_screen.dart';
+
 
 class AppRouter {
   static final GoRouter router = GoRouter(
@@ -33,6 +35,10 @@ class AppRouter {
       GoRoute(
         path: AppConstants.routeForgotPassword,
         builder: (context, state) => const ForgotPasswordScreen(),
+      ),
+      GoRoute(
+        path: AppConstants.routeResetPassword,
+        builder: (context, state) => const ResetPasswordScreen(),
       ),
 
       // Main routes

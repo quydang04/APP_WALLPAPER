@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_theme.dart';
 import '../providers/auth_provider.dart';
+import '../providers/wallpaper_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
@@ -36,14 +37,28 @@ class _LoginScreenState extends State<LoginScreen> {
       });
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
+      final wallpaperProvider = Provider.of<WallpaperProvider>(
+        context,
+        listen: false,
+      );
+
       final success = await authProvider.login(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
       if (success && mounted) {
+        final user = authProvider.currentUser;
+
+        if (user == null) {
+          setState(() {
+            _errorMessage = 'You must be logged in to upload wallpapers';
+          });
+        }
+        await wallpaperProvider.fetchWallpapers(user!.isPremium);
         context.go('/home');
-      } else if (mounted) {
+      }
+        else if (mounted) {
         setState(() {
           _errorMessage = 'Login failed. Please check your credentials.';
         });

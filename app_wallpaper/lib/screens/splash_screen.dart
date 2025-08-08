@@ -37,7 +37,8 @@ class _SplashScreenState extends State<SplashScreen> {
       listen: false,
     );
     await wallpaperProvider.fetchCategories();
-    await wallpaperProvider.fetchWallpapers();
+    await wallpaperProvider.fetchWallpapers(false);
+
 
     // Navigate to appropriate screen
     if (!mounted) return;

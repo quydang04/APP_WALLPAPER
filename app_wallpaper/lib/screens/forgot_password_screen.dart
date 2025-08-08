@@ -19,7 +19,8 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   String? _errorMessage;
-  bool _isSuccess = false;
+  final _isSuccess = BoolWrapper(false);
+  bool _changescenenow = false;
 
   @override
   void dispose() {
@@ -31,19 +32,22 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _errorMessage = null;
-        _isSuccess = false;
+        _isSuccess.value = false;
+        _changescenenow = false;
       });
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final success = await authProvider.resetPassword(
-        email: _emailController.text.trim(),
+      final changescenenow = await authProvider.resetPassword(
+        email: _emailController.text.trim(), success: _isSuccess
       );
+      print(changescenenow);
+      if(changescenenow) context.go('/reset-password');
 
       if (mounted) {
         setState(() {
-          if (success) {
-            _isSuccess = true;
-          } else {
+          if (_isSuccess.value) {
+            _isSuccess.value = true;
+          }else {
             _errorMessage = 'Failed to send reset link. Please try again.';
           }
         });
@@ -75,7 +79,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       decoration: BoxDecoration(
                         color: Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
-                        border: _isSuccess
+                        border: _isSuccess.value
                             ? Border.all(color: AppTheme.successColor, width: 2)
                             : null,
                       ),
@@ -98,7 +102,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   // Title
                   Text(
-                    _isSuccess ? 'Reset Link Sent!' : 'Forgot Password?',
+                    _isSuccess.value ? 'Reset Link Sent!' : 'Forgot Password?',
                     style: AppTheme.headingStyle,
                     textAlign: TextAlign.center,
                   ).animate().fadeIn().slideY(
@@ -111,7 +115,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
 
                   // Subtitle
                   Text(
-                    _isSuccess
+                    _isSuccess.value
                         ? 'Please check your email for instructions to reset your password'
                         : 'Enter your email and we\'ll send you a link to reset your password',
                     style: AppTheme.bodyStyle.copyWith(
@@ -125,7 +129,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   const SizedBox(height: 32),
 
                   // Error message
-                  if (_errorMessage != null && !_isSuccess) ...[
+                  if (_errorMessage != null && !_isSuccess.value) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -144,7 +148,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                   ],
 
                   // Success message
-                  if (_isSuccess) ...[
+                  if (_isSuccess.value) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -166,7 +170,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                     const SizedBox(height: 16),
                   ],
 
-                  if (!_isSuccess) ...[
+                  if (!_isSuccess.value) ...[
                     // Email field
                     CustomTextField(
                           label: 'Email',
@@ -203,27 +207,11 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                           delay: 300.ms,
                           duration: 300.ms,
                         ),
-                  ] else ...[
-                    // Back to login button
-                    CustomButton(
-                          text: 'Back to Login',
-                          onPressed: () {
-                            context.go('/login');
-                          },
-                        )
-                        .animate()
-                        .fadeIn(delay: 300.ms)
-                        .slideY(
-                          begin: 0.3,
-                          end: 0,
-                          delay: 300.ms,
-                          duration: 300.ms,
-                        ),
                   ],
 
                   const SizedBox(height: 24),
 
-                  if (!_isSuccess) ...[
+                  if (!_isSuccess.value) ...[
                     // Back to login link
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,

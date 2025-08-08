@@ -10,6 +10,9 @@ import '../providers/auth_provider.dart';
 import '../providers/wallpaper_provider.dart';
 import '../widgets/category_card.dart';
 import '../widgets/wallpaper_card.dart';
+import 'dart:io';
+import 'package:path_provider/path_provider.dart';
+import 'package:path/path.dart' as path;
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -80,11 +83,15 @@ class _HomeScreenState extends State<HomeScreen> {
     final popularWallpapers = wallpaperProvider.popularWallpapers;
     final recentWallpapers = wallpaperProvider.recentWallpapers;
     final categories = wallpaperProvider.categories;
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
+    final user = authProvider.currentUser;
+
+    authProvider.initialize();
 
     return SafeArea(
       child: RefreshIndicator(
         onRefresh: () async {
-          await wallpaperProvider.fetchWallpapers();
+          await wallpaperProvider.fetchWallpapers(user!.isPremium);
           await wallpaperProvider.fetchCategories();
         },
         child: isLoading
