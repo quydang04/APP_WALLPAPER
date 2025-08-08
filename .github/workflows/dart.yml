@@ -9,29 +9,49 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: app_wallpaper
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      # ✅ Setup Flutter
       - name: Install Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.32.8'  # ✅ Ensures Dart 3.8 support
+          flutter-version: '3.32.8'
           channel: stable
-          
+
+      - name: Run Flutter Doctor
+        run: flutter doctor -v
+
+      - name: Cache Flutter dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            ~/.pub-cache
+          key: ${{ runner.os }}-flutter-${{ hashFiles('**/pubspec.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-flutter-
+
       - name: Install dependencies
         run: flutter pub get
-        working-directory: app_wallpaper
 
-      # - name: Verify formatting
-      #   run: flutter format --set-exit-if-changed .
-      #   working-directory: app_wallpaper
+      - name: Verify formatting
+        run: flutter format --set-exit-if-changed .
 
       - name: Analyze project source
         run: flutter analyze
-        working-directory: app_wallpaper
 
       - name: Run tests
         run: flutter test
-        working-directory: app_wallpaper
+
+      - name: Build debug APK
+        run: flutter build apk --debug
+
+      - name: Upload debug APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: debug-apk
+          path: app_wallpaper/build/app/outputs/flutter-apk/app-debug.apk
