@@ -32,32 +32,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Future<void> _login() async {
     if (_formKey.currentState!.validate()) {
-      setState(() {
-        _errorMessage = null;
-      });
+      setState(() => _errorMessage = null);
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final wallpaperProvider = Provider.of<WallpaperProvider>(
-        context,
-        listen: false,
-      );
+      final authProvider = context.read<AuthProvider>();
+      final wallpaperProvider = context.read<WallpaperProvider>();
 
       final success = await authProvider.login(
         email: _emailController.text.trim(),
         password: _passwordController.text.trim(),
       );
 
-      if (success && mounted) {
+      if (!mounted) return;
+
+      if (success) {
         final user = authProvider.currentUser;
 
         if (user == null) {
           setState(() {
             _errorMessage = 'You must be logged in to upload wallpapers';
           });
+          return;
         }
-        await wallpaperProvider.fetchWallpapers(user!.isPremium);
+
+        await wallpaperProvider.fetchWallpapers(user.isPremium);
         context.go('/home');
-      } else if (mounted) {
+      } else {
         setState(() {
           _errorMessage = 'Login failed. Please check your credentials.';
         });
@@ -67,7 +66,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
+    final authProvider = context.watch<AuthProvider>();
 
     return Scaffold(
       body: SafeArea(
@@ -80,7 +79,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App logo
                   Center(
                     child: Container(
                       width: 80,
@@ -106,37 +104,29 @@ class _LoginScreenState extends State<LoginScreen> {
 
                   const SizedBox(height: 24),
 
-                  // Title
                   Text(
-                        'Welcome Back',
-                        style: AppTheme.headingStyle,
-                        textAlign: TextAlign.center,
-                      )
-                      .animate()
-                      .fadeIn(delay: 100.ms)
-                      .slideY(
-                        begin: 0.3,
-                        end: 0,
-                        delay: 100.ms,
-                        duration: 300.ms,
-                      ),
+                    'Welcome Back',
+                    style: AppTheme.headingStyle,
+                    textAlign: TextAlign.center,
+                  ).animate().fadeIn(delay: 100.ms).slideY(
+                    begin: 0.3,
+                    end: 0,
+                    delay: 100.ms,
+                    duration: 300.ms,
+                  ),
 
                   const SizedBox(height: 8),
 
-                  // Subtitle
                   Text(
                     'Login to access your favorite wallpapers',
                     style: AppTheme.bodyStyle.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onSurface.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 200.ms),
 
                   const SizedBox(height: 32),
 
-                  // Error message
                   if (_errorMessage != null) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
@@ -151,96 +141,75 @@ class _LoginScreenState extends State<LoginScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ).animate().fadeIn().shake(),
-
                     const SizedBox(height: 16),
                   ],
 
-                  // Email field
                   CustomTextField(
-                        label: 'Email',
-                        hint: 'Enter your email',
-                        controller: _emailController,
-                        keyboardType: TextInputType.emailAddress,
-                        prefixIcon: const Icon(Icons.email_outlined),
-                        validator: Validators.validateEmail,
-                        textInputAction: TextInputAction.next,
-                      )
-                      .animate()
-                      .fadeIn(delay: 300.ms)
-                      .slideX(
-                        begin: 0.3,
-                        end: 0,
-                        delay: 300.ms,
-                        duration: 300.ms,
-                      ),
+                    label: 'Email',
+                    hint: 'Enter your email',
+                    controller: _emailController,
+                    keyboardType: TextInputType.emailAddress,
+                    prefixIcon: const Icon(Icons.email_outlined),
+                    validator: Validators.validateEmail,
+                    textInputAction: TextInputAction.next,
+                  ).animate().fadeIn(delay: 300.ms).slideX(
+                    begin: 0.3,
+                    end: 0,
+                    delay: 300.ms,
+                    duration: 300.ms,
+                  ),
 
                   const SizedBox(height: 16),
 
-                  // Password field
                   CustomTextField(
-                        label: 'Password',
-                        hint: 'Enter your password',
-                        controller: _passwordController,
-                        obscureText: _obscurePassword,
-                        prefixIcon: const Icon(Icons.lock_outline),
-                        suffixIcon: IconButton(
-                          icon: Icon(
-                            _obscurePassword
-                                ? Icons.visibility_outlined
-                                : Icons.visibility_off_outlined,
-                          ),
-                          onPressed: () {
-                            setState(() {
-                              _obscurePassword = !_obscurePassword;
-                            });
-                          },
-                        ),
-                        validator: Validators.validatePassword,
-                        textInputAction: TextInputAction.done,
-                        onSubmitted: (_) => _login(),
-                      )
-                      .animate()
-                      .fadeIn(delay: 400.ms)
-                      .slideX(
-                        begin: 0.3,
-                        end: 0,
-                        delay: 400.ms,
-                        duration: 300.ms,
-                      ),
+                    label: 'Password',
+                    hint: 'Enter your password',
+                    controller: _passwordController,
+                    obscureText: _obscurePassword,
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(_obscurePassword
+                          ? Icons.visibility_outlined
+                          : Icons.visibility_off_outlined),
+                      onPressed: () {
+                        setState(() => _obscurePassword = !_obscurePassword);
+                      },
+                    ),
+                    validator: Validators.validatePassword,
+                    textInputAction: TextInputAction.done,
+                    onSubmitted: (_) => _login(),
+                  ).animate().fadeIn(delay: 400.ms).slideX(
+                    begin: 0.3,
+                    end: 0,
+                    delay: 400.ms,
+                    duration: 300.ms,
+                  ),
 
                   const SizedBox(height: 8),
 
-                  // Forgot password
                   Align(
                     alignment: Alignment.centerRight,
                     child: TextButton(
-                      onPressed: () {
-                        context.push('/forgot-password');
-                      },
+                      onPressed: () => context.push('/forgot-password'),
                       child: const Text('Forgot Password?'),
                     ),
                   ).animate().fadeIn(delay: 500.ms),
 
                   const SizedBox(height: 24),
 
-                  // Login button
                   CustomButton(
-                        text: 'Login',
-                        onPressed: _login,
-                        isLoading: authProvider.isLoading,
-                      )
-                      .animate()
-                      .fadeIn(delay: 600.ms)
-                      .slideY(
-                        begin: 0.3,
-                        end: 0,
-                        delay: 600.ms,
-                        duration: 300.ms,
-                      ),
+                    text: 'Login',
+                    onPressed: _login,
+                    isLoading: authProvider.isLoading,
+                  ).animate().fadeIn(delay: 600.ms).slideY(
+                    begin: 0.3,
+                    end: 0,
+                    delay: 600.ms,
+                    duration: 300.ms,
+                  ),
 
                   const SizedBox(height: 24),
 
-                  // Register link
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
@@ -249,9 +218,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         style: AppTheme.bodyStyle,
                       ),
                       TextButton(
-                        onPressed: () {
-                          context.push('/register');
-                        },
+                        onPressed: () => context.push('/register'),
                         child: const Text('Register'),
                       ),
                     ],
