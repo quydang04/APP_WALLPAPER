@@ -17,7 +17,7 @@ class CustomButton extends StatelessWidget {
   final Widget? suffixIcon;
 
   const CustomButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
@@ -31,7 +31,7 @@ class CustomButton extends StatelessWidget {
     this.padding,
     this.prefixIcon,
     this.suffixIcon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

@@ -8,7 +8,7 @@ import '../providers/premium_provider.dart';
 import '../widgets/custom_button.dart';
 
 class PremiumScreen extends StatefulWidget {
-  const PremiumScreen({Key? key}) : super(key: key);
+  const PremiumScreen({super.key});
 
   @override
   State<PremiumScreen> createState() => _PremiumScreenState();
@@ -223,7 +223,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                                 style: AppTheme.bodyStyle.copyWith(
                                   color: Theme.of(
                                     context,
-                                  ).colorScheme.onBackground.withOpacity(0.7),
+                                  ).colorScheme.onSurface.withOpacity(0.7),
                                 ),
                               ),
                             ],
@@ -241,7 +241,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                             style: AppTheme.captionStyle.copyWith(
                               color: Theme.of(
                                 context,
-                              ).colorScheme.onBackground.withOpacity(0.7),
+                              ).colorScheme.onSurface.withOpacity(0.7),
                             ),
                           ),
                         ],
@@ -378,7 +378,7 @@ class _PremiumScreenState extends State<PremiumScreen> {
                   style: AppTheme.bodyStyle.copyWith(
                     color: Theme.of(
                       context,
-                    ).colorScheme.onBackground.withOpacity(0.7),
+                    ).colorScheme.onSurface.withOpacity(0.7),
                   ),
                 ),
               ],

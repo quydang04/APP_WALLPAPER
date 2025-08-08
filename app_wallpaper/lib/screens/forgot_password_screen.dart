@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
+
 import '../constants/app_theme.dart';
 import '../providers/auth_provider.dart';
 import '../utils/validators.dart';
@@ -9,7 +10,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
 class ForgotPasswordScreen extends StatefulWidget {
-  const ForgotPasswordScreen({Key? key}) : super(key: key);
+  const ForgotPasswordScreen({super.key});
 
   @override
   State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
@@ -18,9 +19,8 @@ class ForgotPasswordScreen extends StatefulWidget {
 class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
-  String? _errorMessage;
   final _isSuccess = BoolWrapper(false);
-  bool _changescenenow = false;
+  String? _errorMessage;
 
   @override
   void dispose() {
@@ -33,23 +33,19 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
       setState(() {
         _errorMessage = null;
         _isSuccess.value = false;
-        _changescenenow = false;
       });
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
-      final changescenenow = await authProvider.resetPassword(
-        email: _emailController.text.trim(), success: _isSuccess
+      final didNavigate = await authProvider.resetPassword(
+        email: _emailController.text.trim(),
+        success: _isSuccess,
       );
-      print(changescenenow);
-      if(changescenenow) context.go('/reset-password');
 
-      if (mounted) {
+      if (didNavigate) context.go('/reset-password');
+
+      if (mounted && !_isSuccess.value) {
         setState(() {
-          if (_isSuccess.value) {
-            _isSuccess.value = true;
-          }else {
-            _errorMessage = 'Failed to send reset link. Please try again.';
-          }
+          _errorMessage = 'Failed to send reset link. Please try again.';
         });
       }
     }
@@ -58,6 +54,7 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = Provider.of<AuthProvider>(context);
+    final isSuccess = _isSuccess.value;
 
     return Scaffold(
       appBar: AppBar(title: const Text('Forgot Password'), centerTitle: true),
@@ -68,19 +65,20 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
             child: Form(
               key: _formKey,
               child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  // App logo
+                  // Logo
                   Center(
                     child: Container(
                       width: 80,
                       height: 80,
                       decoration: BoxDecoration(
-                        color: Colors.transparent,
                         borderRadius: BorderRadius.circular(16),
-                        border: _isSuccess.value
-                            ? Border.all(color: AppTheme.successColor, width: 2)
+                        border: isSuccess
+                            ? Border.all(
+                          color: AppTheme.successColor,
+                          width: 2,
+                        )
                             : null,
                       ),
                       child: ClipRRect(
@@ -91,45 +89,36 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         ),
                       ),
                     ),
-                  ).animate().fadeIn().scale(
-                    begin: const Offset(0.8, 0.8),
-                    end: const Offset(1, 1),
-                    duration: 300.ms,
-                    curve: Curves.easeOutBack,
-                  ),
+                  )
+                      .animate()
+                      .fadeIn()
+                      .scale(duration: 300.ms, curve: Curves.easeOutBack),
 
                   const SizedBox(height: 24),
 
                   // Title
                   Text(
-                    _isSuccess.value ? 'Reset Link Sent!' : 'Forgot Password?',
+                    isSuccess ? 'Reset Link Sent!' : 'Forgot Password?',
                     style: AppTheme.headingStyle,
                     textAlign: TextAlign.center,
-                  ).animate().fadeIn().slideY(
-                    begin: 0.3,
-                    end: 0,
-                    duration: 300.ms,
-                  ),
+                  ).animate().fadeIn().slideY(begin: 0.3, end: 0),
 
                   const SizedBox(height: 8),
 
                   // Subtitle
                   Text(
-                    _isSuccess.value
-                        ? 'Please check your email for instructions to reset your password'
-                        : 'Enter your email and we\'ll send you a link to reset your password',
+                    isSuccess
+                        ? 'Check your email to reset your password.'
+                        : 'Enter your email and we’ll send you a reset link.',
                     style: AppTheme.bodyStyle.copyWith(
-                      color: Theme.of(
-                        context,
-                      ).colorScheme.onBackground.withOpacity(0.7),
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 100.ms),
 
                   const SizedBox(height: 32),
 
-                  // Error message
-                  if (_errorMessage != null && !_isSuccess.value) ...[
+                  if (_errorMessage != null && !isSuccess) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -143,12 +132,10 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                         textAlign: TextAlign.center,
                       ),
                     ).animate().fadeIn().shake(),
-
                     const SizedBox(height: 16),
                   ],
 
-                  // Success message
-                  if (_isSuccess.value) ...[
+                  if (isSuccess) ...[
                     Container(
                       padding: const EdgeInsets.all(12),
                       decoration: BoxDecoration(
@@ -166,69 +153,43 @@ class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
                       end: const Offset(1, 1),
                       duration: 300.ms,
                     ),
-
                     const SizedBox(height: 16),
                   ],
 
-                  if (!_isSuccess.value) ...[
-                    // Email field
+                  if (!isSuccess) ...[
                     CustomTextField(
-                          label: 'Email',
-                          hint: 'Enter your email',
-                          controller: _emailController,
-                          keyboardType: TextInputType.emailAddress,
-                          prefixIcon: const Icon(Icons.email_outlined),
-                          validator: Validators.validateEmail,
-                          textInputAction: TextInputAction.done,
-                          onSubmitted: (_) => _resetPassword(),
-                        )
-                        .animate()
-                        .fadeIn(delay: 200.ms)
-                        .slideX(
-                          begin: 0.3,
-                          end: 0,
-                          delay: 200.ms,
-                          duration: 300.ms,
-                        ),
+                      label: 'Email',
+                      hint: 'Enter your email',
+                      controller: _emailController,
+                      keyboardType: TextInputType.emailAddress,
+                      prefixIcon: const Icon(Icons.email_outlined),
+                      validator: Validators.validateEmail,
+                      textInputAction: TextInputAction.done,
+                      onSubmitted: (_) => _resetPassword(),
+                    ).animate().fadeIn(delay: 200.ms).slideX(begin: 0.3, end: 0),
 
                     const SizedBox(height: 32),
 
-                    // Reset button
                     CustomButton(
-                          text: 'Send Reset Link',
-                          onPressed: _resetPassword,
-                          isLoading: authProvider.isLoading,
-                        )
-                        .animate()
-                        .fadeIn(delay: 300.ms)
-                        .slideY(
-                          begin: 0.3,
-                          end: 0,
-                          delay: 300.ms,
-                          duration: 300.ms,
-                        ),
+                      text: 'Send Reset Link',
+                      onPressed: _resetPassword,
+                      isLoading: authProvider.isLoading,
+                    ).animate().fadeIn(delay: 300.ms).slideY(begin: 0.3, end: 0),
                   ],
 
                   const SizedBox(height: 24),
 
-                  if (!_isSuccess.value) ...[
-                    // Back to login link
+                  if (!isSuccess)
                     Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Text(
-                          'Remember your password? ',
-                          style: AppTheme.bodyStyle,
-                        ),
+                        Text('Remember your password? ', style: AppTheme.bodyStyle),
                         TextButton(
-                          onPressed: () {
-                            context.pop();
-                          },
+                          onPressed: () => context.pop(),
                           child: const Text('Login'),
                         ),
                       ],
                     ).animate().fadeIn(delay: 400.ms),
-                  ],
                 ],
               ),
             ),

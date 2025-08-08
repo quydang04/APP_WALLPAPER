@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
-import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
-import '../constants/app_theme.dart';
+import 'package:go_router/go_router.dart';
 import '../providers/auth_provider.dart';
-import '../utils/validators.dart';
-import '../widgets/custom_button.dart';
-import '../widgets/custom_text_field.dart';
 
 class ResetPasswordScreen extends StatefulWidget {
-  const ResetPasswordScreen({Key? key}) : super(key: key);
+  final String oobCode;
+
+  const ResetPasswordScreen({Key? key, required this.oobCode}) : super(key: key);
 
   @override
   State<ResetPasswordScreen> createState() => _ResetPasswordScreenState();
@@ -19,7 +16,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _newPasswordController = TextEditingController();
   final _confirmPasswordController = TextEditingController();
-  bool _obscurePassword = true;
+
   String? _errorMessage;
 
   @override
@@ -44,11 +41,12 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
       final authProvider = Provider.of<AuthProvider>(context, listen: false);
       final success = await authProvider.confirmResetPassword(
+        oobCode: widget.oobCode,
         newPassword: _newPasswordController.text.trim(),
       );
 
       if (success && mounted) {
-        context.go('/login'); // Go to Login after successful reset
+        context.go('/login');
       } else if (mounted) {
         setState(() {
           _errorMessage = 'Failed to reset password. Please try again.';
@@ -59,152 +57,42 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final authProvider = Provider.of<AuthProvider>(context);
-
     return Scaffold(
-      appBar: AppBar(title: const Text('Reset Password'), centerTitle: true),
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Form(
-              key: _formKey,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // App logo
-                  Center(
-                    child: Container(
-                      width: 80,
-                      height: 80,
-                      decoration: BoxDecoration(
-                        color: Colors.transparent,
-                        borderRadius: BorderRadius.circular(16),
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
-                          'assets/images/favicon.jpg',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  ).animate().fadeIn().scale(
-                    begin: const Offset(0.8, 0.8),
-                    end: const Offset(1, 1),
-                    duration: 300.ms,
-                    curve: Curves.easeOutBack,
-                  ),
-
-                  const SizedBox(height: 24),
-
-                  // Title
-                  Text(
-                    'Reset Your Password',
-                    style: AppTheme.headingStyle,
-                    textAlign: TextAlign.center,
-                  ).animate().fadeIn(delay: 100.ms),
-
-                  const SizedBox(height: 8),
-
-                  // Subtitle
-                  Text(
-                    'Enter your new password below.',
-                    style: AppTheme.bodyStyle.copyWith(
-                      color: Theme.of(context).colorScheme.onBackground.withOpacity(0.7),
-                    ),
-                    textAlign: TextAlign.center,
-                  ).animate().fadeIn(delay: 200.ms),
-
-                  const SizedBox(height: 32),
-
-                  // Error message
-                  if (_errorMessage != null) ...[
-                    Container(
-                      padding: const EdgeInsets.all(12),
-                      decoration: BoxDecoration(
-                        color: AppTheme.errorColor.withOpacity(0.1),
-                        borderRadius: BorderRadius.circular(8),
-                        border: Border.all(color: AppTheme.errorColor),
-                      ),
-                      child: Text(
-                        _errorMessage!,
-                        style: TextStyle(color: AppTheme.errorColor),
-                        textAlign: TextAlign.center,
-                      ),
-                    ).animate().fadeIn().shake(),
-
-                    const SizedBox(height: 16),
-                  ],
-
-                  // New Password Field
-                  CustomTextField(
-                    label: 'New Password',
-                    hint: 'Enter new password',
-                    controller: _newPasswordController,
-                    obscureText: _obscurePassword,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                    validator: Validators.validatePassword,
-                    textInputAction: TextInputAction.next,
-                  ).animate().fadeIn(delay: 300.ms),
-
-                  const SizedBox(height: 16),
-
-                  // Confirm Password Field
-                  CustomTextField(
-                    label: 'Confirm Password',
-                    hint: 'Re-enter new password',
-                    controller: _confirmPasswordController,
-                    obscureText: true,
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    validator: Validators.validatePassword,
-                    textInputAction: TextInputAction.done,
-                    onSubmitted: (_) => _confirmResetPassword(),
-                  ).animate().fadeIn(delay: 400.ms),
-
-                  const SizedBox(height: 24),
-
-                  // Confirm Reset Button
-                  CustomButton(
-                    text: 'Confirm Reset',
-                    onPressed: _confirmResetPassword,
-                    isLoading: authProvider.isLoading,
-                  ).animate().fadeIn(delay: 500.ms),
-
-                  const SizedBox(height: 24),
-
-                  // Back to Login Link
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'Back to ',
-                        style: AppTheme.bodyStyle,
-                      ),
-                      TextButton(
-                        onPressed: () {
-                          context.go('/login');
-                        },
-                        child: const Text('Login'),
-                      ),
-                    ],
-                  ).animate().fadeIn(delay: 600.ms),
-                ],
+      appBar: AppBar(title: const Text('Reset Password')),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            children: [
+              TextFormField(
+                controller: _newPasswordController,
+                decoration: const InputDecoration(labelText: 'New Password'),
+                obscureText: true,
+                validator: (value) =>
+                value == null || value.isEmpty ? 'Please enter a new password' : null,
               ),
-            ),
+              const SizedBox(height: 16),
+              TextFormField(
+                controller: _confirmPasswordController,
+                decoration: const InputDecoration(labelText: 'Confirm Password'),
+                obscureText: true,
+                validator: (value) =>
+                value == null || value.isEmpty ? 'Please confirm your password' : null,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: _confirmResetPassword,
+                child: const Text('Reset Password'),
+              ),
+              if (_errorMessage != null) ...[
+                const SizedBox(height: 12),
+                Text(
+                  _errorMessage!,
+                  style: const TextStyle(color: Colors.red),
+                ),
+              ],
+            ],
           ),
         ),
       ),

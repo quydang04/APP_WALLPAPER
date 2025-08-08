@@ -13,7 +13,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
 class UploadScreen extends StatefulWidget {
-  const UploadScreen({Key? key}) : super(key: key);
+  const UploadScreen({super.key});
 
   @override
   State<UploadScreen> createState() => _UploadScreenState();
@@ -28,7 +28,7 @@ class _UploadScreenState extends State<UploadScreen> {
   bool _isAnime = true;
   String? _selectedAnimeCharacter;
   bool _isPremium = false;
-  List<String> _selectedCategories = ['anime'];
+  final List<String> _selectedCategories = ['anime'];
   bool _isUploading = false;
   String? _errorMessage;
   bool _canToggleSwitch = false;
@@ -107,7 +107,10 @@ class _UploadScreenState extends State<UploadScreen> {
         );
 
         print(newWallpaper.title);
-        final success = await wallpaperProvider.uploadWallpaper(newWallpaper, user.isPremium);
+        final success = await wallpaperProvider.uploadWallpaper(
+          newWallpaper,
+          user.isPremium,
+        );
 
         if (success && mounted) {
           // Show success message and navigate back
@@ -353,10 +356,10 @@ class _UploadScreenState extends State<UploadScreen> {
                   value: _isPremium,
                   onChanged: _canToggleSwitch
                       ? (value) {
-                    setState(() {
-                      _isPremium = value;
-                    });
-                  }
+                          setState(() {
+                            _isPremium = value;
+                          });
+                        }
                       : null, // disables the switch
                   activeColor: AppTheme.accentColor,
                 ).animate().fadeIn(delay: 600.ms),

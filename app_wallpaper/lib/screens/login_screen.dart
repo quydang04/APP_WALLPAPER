@@ -10,7 +10,7 @@ import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
 
 class LoginScreen extends StatefulWidget {
-  const LoginScreen({Key? key}) : super(key: key);
+  const LoginScreen({super.key});
 
   @override
   State<LoginScreen> createState() => _LoginScreenState();
@@ -57,8 +57,7 @@ class _LoginScreenState extends State<LoginScreen> {
         }
         await wallpaperProvider.fetchWallpapers(user!.isPremium);
         context.go('/home');
-      }
-        else if (mounted) {
+      } else if (mounted) {
         setState(() {
           _errorMessage = 'Login failed. Please check your credentials.';
         });
@@ -130,7 +129,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     style: AppTheme.bodyStyle.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onBackground.withOpacity(0.7),
+                      ).colorScheme.onSurface.withOpacity(0.7),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 200.ms),

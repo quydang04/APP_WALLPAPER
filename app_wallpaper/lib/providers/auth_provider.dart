@@ -1,16 +1,12 @@
 import 'dart:async';
 import 'dart:convert';
-import 'package:app_wallpaper/providers/wallpaper_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart' as fb_auth;
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
-import 'package:path/path.dart';
-import 'package:provider/provider.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../models/user.dart';
 import '../constants/app_constants.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
-import 'dart:math';
 
 class BoolWrapper {
   bool value;
@@ -23,23 +19,22 @@ class AuthProvider with ChangeNotifier {
   String? _token;
   bool _isLoggedIn = false;
   String? errormsg;
-  Map<String, dynamic>? userData;
-  String? _email;
   InterstitialAd? _interstitialAd;
   Timer? _adTimer;
-  bool ispre = false;
+  final fb_auth.FirebaseAuth _auth = fb_auth.FirebaseAuth.instance;
 
   User? get currentUser => _currentUser;
   bool get isLoading => _isLoading;
   String? get token => _token;
   bool get isLoggedIn => _isLoggedIn;
+
   void initialize() {
     _startAdTimer();
   }
 
   void _startAdTimer() {
-    _adTimer = Timer.periodic(const Duration(seconds: 2), (_) {
-      if(_currentUser!.isPremium == false){
+    _adTimer = Timer.periodic(const Duration(minutes: 10), (_) {
+      if (_currentUser != null && !_currentUser!.isPremium) {
         _loadAndShowInterstitialAd();
       }
     });
@@ -47,7 +42,7 @@ class AuthProvider with ChangeNotifier {
 
   void _loadAndShowInterstitialAd() {
     InterstitialAd.load(
-      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // Replace with real ID
+      adUnitId: 'ca-app-pub-3940256099942544/1033173712', // Replace with real Ad ID
       request: const AdRequest(),
       adLoadCallback: InterstitialAdLoadCallback(
         onAdLoaded: (InterstitialAd ad) {
@@ -65,16 +60,19 @@ class AuthProvider with ChangeNotifier {
           ad.show();
         },
         onAdFailedToLoad: (LoadAdError error) {
-          print('InterstitialAd failed to load: $error');
+          debugPrint('InterstitialAd failed to load: $error');
         },
       ),
     );
   }
 
+  @override
   void dispose() {
     _adTimer?.cancel();
     _interstitialAd?.dispose();
+    super.dispose();
   }
+
   Future<void> loadUserFromPrefs() async {
     _isLoading = true;
     notifyListeners();
@@ -104,50 +102,47 @@ class AuthProvider with ChangeNotifier {
     required String password,
   }) async {
     _isLoading = true;
+    errormsg = null;
     notifyListeners();
-
-    const String apiUrl = 'http://10.0.2.2/testwallpapering/postuser.php'; // Replace with your API endpoint
 
     try {
-      final response = await http.post(
-        Uri.parse(apiUrl),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'username': username,
-          'email': email,
-          'password': password,
-        }),
+      final fb_auth.UserCredential userCredential =
+      await fb_auth.FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+
+      _currentUser = User(
+        id: userCredential.user!.uid,
+        username: username,
+        email: email,
+        isPremium: false,
       );
 
-      print('Status Code: ${response.statusCode}');
-      print('Response Body: ${response.body}');
+      _token = await userCredential.user!.getIdToken();
+      _isLoggedIn = true;
 
-      if (response.statusCode == 200) {
-        try {
-          final data = jsonDecode(response.body);
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .set({
+        'username': username,
+        'isPremium': false,
+      });
 
-          if (data is Map && data['success'] == true) {
-            print('Registered User: $data');
-            _isLoading = false;
-            notifyListeners();
-            return true;
-          } else {
-            print('API Error: $data');
-          }
-        } catch (e) {
-          print('JSON Parse Error: $e');
-          print('Raw Response: ${response.body}');
-        }
-      } else {
-        print('Server Error: Status ${response.statusCode}');
-      }
+      await _saveUserToPrefs();
+
+      return true;
+    } on fb_auth.FirebaseAuthException catch (e) {
+      errormsg = e.message;
+      debugPrint("FirebaseAuthException [register]: ${e.code} - ${e.message}");
+      return false;
     } catch (e) {
-      print('Connection Error: $e');
+      errormsg = 'Unexpected error.';
+      debugPrint("Unexpected Error [register]: $e");
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
     }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
   }
 
   Future<bool> login({
@@ -157,144 +152,38 @@ class AuthProvider with ChangeNotifier {
     _isLoading = true;
     errormsg = null;
     notifyListeners();
-    final Uri apiUrl = Uri.parse(
-        'http://10.0.2.2/testwallpapering/getuser.php?email=$email&password=$password');
-    // Change 'localhost' to your server IP when testing on mobile
 
     try {
-      final response = await http.get(apiUrl);
+      final userCredential = await fb_auth.FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        print('Login Success: $data');
+      final doc = await FirebaseFirestore.instance
+          .collection('users')
+          .doc(userCredential.user!.uid)
+          .get();
 
-        final user = User(
-          id: data['user_id'].toString(),
-          username: data['username'],
-          email: data['email'],
-          isPremium: data['Premium']!= 0
-        );
-        _currentUser = user;
-        _isLoggedIn = true;
-        _isLoading = false;
-        await _saveUserToPrefs();
+      final data = doc.data() ?? {};
 
-        return true;
-      } else {
-        final data = jsonDecode(response.body);
-        errormsg = data['error'] ?? 'Login failed.';
-        print('Login Failed: $errormsg');
-      }
-    } catch (e) {
-      errormsg = 'Network error occurred.';
-      print('Error: $e');
-    }
-
-    _isLoading = false;
-    notifyListeners();
-    return false;
-  }
-
-  Future<bool> resetPassword({required String email, required BoolWrapper success}) async {
-    _email = email;
-    final Uri apiUrl = Uri.parse(
-        'http://10.0.2.2/testwallpapering/sendresetemail.php'); // Adjust URL as needed
-    final int token = Random().nextInt(100);
-    try {
-      final response = await http.post(
-        apiUrl,
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'email': email, 'token': token}),
+      _currentUser = User(
+        id: userCredential.user!.uid,
+        username: data['username'] ?? 'Unknown',
+        email: email,
+        isPremium: data['isPremium'] ?? false,
       );
 
-      print('Response: ${response.body}');
+      _token = await userCredential.user!.getIdToken();
+      _isLoggedIn = true;
 
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          _isLoading = false;
-          success.value = true;
-          notifyListeners();
-        } else {
-          print('Failed to send email: ${data['error']}');
-          success.value = false;
-        }
-      } else {
-        print('Server error: ${response.statusCode}');
-        success.value = false;
-      }
+      await _saveUserToPrefs();
+
+      return true;
+    } on fb_auth.FirebaseAuthException catch (e) {
+      errormsg = e.message;
+      debugPrint("FirebaseAuthException [login]: ${e.code} - ${e.message}");
+      return false;
     } catch (e) {
-      print('Network error: $e');
-      success.value = false;
-    }
-
-
-    final url = Uri.parse('http://10.0.2.2/testwallpapering/ifverify.php?email=$email&token=$token');
-
-    const int maxRetries = 30; // Max 30 attempts
-    const Duration delayBetweenRetries = Duration(seconds: 2); // 2s interval
-
-    for (int attempt = 0; attempt < maxRetries; attempt++) {
-      final response = await http.get(url);
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-
-        if (data['verified'] == true) {
-          final a = await http.post(
-            Uri.parse('http://10.0.2.2/testwallpapering/falseagain.php?email=$email&com&token=$token')
-          );
-          print('Response: ${a.body}');
-          if(jsonDecode(a.body)['success'] == true) return true;
-        } else {
-          print('Still not verified. Attempt ${attempt + 1}');
-        }
-      } else {
-        print('Server error: ${response.statusCode}');
-      }
-
-      // Wait before next poll
-      await Future.delayed(delayBetweenRetries);
-    }
-
-    print('Verification timed out. Please try again later.');
-    return false;
-  }
-
-  Future<bool> confirmResetPassword({
-    required String newPassword,
-  }) async {
-    try {
-      _isLoading = true;
-      notifyListeners();
-      print(newPassword);
-
-      // Assume you have saved the email & token from earlier (or pass them as params)
-      final String email = _email ?? '';
-
-      final response = await http.post(
-        Uri.parse('http://10.0.2.2/testwallpapering/reset_password.php'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': newPassword,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        if (data['success'] == true) {
-          return true;  // Password reset successful
-        } else {
-          print('Reset failed: ${data['error']}');
-          return false;
-        }
-      } else {
-        print('Server error: ${response.statusCode}');
-        return false;
-      }
-    } catch (e) {
-      print('Error in confirmResetPassword: $e');
+      errormsg = 'Unexpected error.';
+      debugPrint("Unexpected Error [login]: $e");
       return false;
     } finally {
       _isLoading = false;
@@ -302,26 +191,80 @@ class AuthProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> resetPassword({
+    required String email,
+    required BoolWrapper success,
+  }) async {
+    try {
+      await fb_auth.FirebaseAuth.instance.sendPasswordResetEmail(email: email);
+      success.value = true;
+      return true;
+    } on fb_auth.FirebaseAuthException catch (e) {
+      errormsg = e.message;
+      debugPrint("FirebaseAuthException [resetPassword]: ${e.code} - ${e.message}");
+      success.value = false;
+      return false;
+    }
+  }
 
   Future<void> logout() async {
     _isLoading = true;
     notifyListeners();
 
     try {
+      await fb_auth.FirebaseAuth.instance.signOut();
+
       _currentUser = null;
       _token = null;
       _isLoggedIn = false;
 
-      // Clear from SharedPreferences
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(AppConstants.prefKeyUser);
       await prefs.remove(AppConstants.prefKeyToken);
       await prefs.setBool(AppConstants.prefKeyIsLoggedIn, false);
     } catch (e) {
-      debugPrint('Error logging out: $e');
+      debugPrint('Logout error: $e');
     } finally {
       _isLoading = false;
       notifyListeners();
+    }
+  }
+
+  Future<bool> sendPasswordResetEmail({required String email}) async {
+    try {
+      _isLoading = true;
+      notifyListeners();
+
+      await _auth.sendPasswordResetEmail(
+        email: email,
+        actionCodeSettings: fb_auth.ActionCodeSettings(
+          url: 'https://appwallpaper.page.link/reset',
+          handleCodeInApp: true,
+          androidPackageName: 'hiouuhuu.ii.l',
+          androidInstallApp: true,
+          androidMinimumVersion: '23',
+        ),
+      );
+      return true;
+    } catch (e) {
+      debugPrint('Error sending reset email: $e');
+      return false;
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> confirmResetPassword({
+    required String oobCode,
+    required String newPassword,
+  }) async {
+    try {
+      await _auth.confirmPasswordReset(code: oobCode, newPassword: newPassword);
+      return true;
+    } catch (e) {
+      debugPrint('Password reset failed: $e');
+      return false;
     }
   }
 
@@ -330,10 +273,12 @@ class AuthProvider with ChangeNotifier {
     notifyListeners();
 
     try {
-      // This would be an API call in a real app
       _currentUser = updatedUser;
+      await FirebaseFirestore.instance
+          .collection('users')
+          .doc(updatedUser.id)
+          .update(updatedUser.toJson());
 
-      // Save to SharedPreferences
       await _saveUserToPrefs();
     } catch (e) {
       debugPrint('Error updating user: $e');

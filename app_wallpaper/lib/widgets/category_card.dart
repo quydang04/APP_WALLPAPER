@@ -13,14 +13,14 @@ class CategoryCard extends StatelessWidget {
   final EdgeInsetsGeometry? margin;
 
   const CategoryCard({
-    Key? key,
+    super.key,
     required this.category,
     this.onTap,
     this.height = 100,
     this.width = 150,
     this.borderRadius,
     this.margin,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

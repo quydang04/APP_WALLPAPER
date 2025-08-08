@@ -15,8 +15,7 @@ import 'dart:async';
 class WallpaperDetailScreen extends StatefulWidget {
   final String wallpaperId;
 
-  const WallpaperDetailScreen({Key? key, required this.wallpaperId})
-    : super(key: key);
+  const WallpaperDetailScreen({super.key, required this.wallpaperId});
 
   @override
   State<WallpaperDetailScreen> createState() => _WallpaperDetailScreenState();
@@ -30,7 +29,6 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
   bool _isBannerAdLoaded = false;
   Timer? _adTimer;
   InterstitialAd? _interstitialAd;
-
 
   @override
   void initState() {
@@ -214,7 +212,7 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                     bottom: 0,
                     left: 0,
                     right: 0,
-                    child: Container(
+                    child: SizedBox(
                       height: _bannerAd.size.height.toDouble(),
                       width: _bannerAd.size.width.toDouble(),
                       child: AdWidget(ad: _bannerAd),
@@ -308,8 +306,8 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                                   children: [
                                     _buildInfoChip(
                                       icon: Icons.favorite,
-                                      label: '${
-                                          _isLiked ? wallpaper.likes + 1 : wallpaper.likes}',
+                                      label:
+                                          '${_isLiked ? wallpaper.likes + 1 : wallpaper.likes}',
                                       color: Colors.red,
                                     ),
                                     const SizedBox(width: 16),
@@ -345,10 +343,10 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                                   onPressed: canDownload
                                       ? () => _downloadWallpaper(wallpaper)
                                       : () => _showVideoAdDialog(
-                                              context,
-                                              premiumProvider,
-                                              wallpaper,
-                                            ), // Empty function instead of null
+                                          context,
+                                          premiumProvider,
+                                          wallpaper,
+                                        ), // Empty function instead of null
                                   isLoading: _isDownloading,
                                   backgroundColor: canDownload
                                       ? AppTheme.primaryColor
@@ -465,7 +463,9 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                 LinearProgressIndicator(
                   value: premiumProvider.unlockProgressPercentage,
                   backgroundColor: Colors.grey[300],
-                  valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  valueColor: AlwaysStoppedAnimation<Color>(
+                    AppTheme.primaryColor,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -491,14 +491,16 @@ class _WallpaperDetailScreenState extends State<WallpaperDetailScreen> {
                   onAdLoaded: (RewardedAd ad) {
                     ad.fullScreenContentCallback = FullScreenContentCallback(
                       onAdDismissedFullScreenContent: (ad) => ad.dispose(),
-                      onAdFailedToShowFullScreenContent: (ad, error) => ad.dispose(),
+                      onAdFailedToShowFullScreenContent: (ad, error) =>
+                          ad.dispose(),
                     );
 
                     ad.show(
                       onUserEarnedReward: (ad, reward) {
                         premiumProvider.watchVideo();
 
-                        if (premiumProvider.watchedVideos >= premiumProvider.requiredVideosToUnlock) {
+                        if (premiumProvider.watchedVideos >=
+                            premiumProvider.requiredVideosToUnlock) {
                           premiumProvider.unlockWallpaper(wallpaper.id);
                           Navigator.of(context).pop();
                         }

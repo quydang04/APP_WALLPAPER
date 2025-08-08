@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "855235878644",
+    "project_id": "appwallpaper-1dceb",
+    "storage_bucket": "appwallpaper-1dceb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:855235878644:android:355b4722337970839908a1",
+        "android_client_info": {
+          "package_name": "hiouuhuu.ii.l"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDP4uj9gwQko94vmdTBhWi-ikGTU-21zcY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

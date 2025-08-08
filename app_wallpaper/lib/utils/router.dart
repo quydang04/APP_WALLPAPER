@@ -15,7 +15,6 @@ import '../screens/upload_screen.dart';
 import '../screens/premium_screen.dart';
 import '../screens/settings_screen.dart';
 
-
 class AppRouter {
   static final GoRouter router = GoRouter(
     initialLocation: '/',
@@ -38,7 +37,7 @@ class AppRouter {
       ),
       GoRoute(
         path: AppConstants.routeResetPassword,
-        builder: (context, state) => const ResetPasswordScreen(),
+        builder: (context, state) => const ResetPasswordScreen(oobCode: '',),
       ),
 
       // Main routes

@@ -7,11 +7,9 @@ import '../providers/auth_provider.dart';
 import '../utils/validators.dart';
 import '../widgets/custom_button.dart';
 import '../widgets/custom_text_field.dart';
-import 'package:http/http.dart' as http;
-import 'dart:convert';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
+  const RegisterScreen({super.key});
 
   @override
   State<RegisterScreen> createState() => _RegisterScreenState();
@@ -58,7 +56,6 @@ class _RegisterScreenState extends State<RegisterScreen> {
       }
     }
   }
-
 
   @override
   Widget build(BuildContext context) {
@@ -121,7 +118,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     style: AppTheme.bodyStyle.copyWith(
                       color: Theme.of(
                         context,
-                      ).colorScheme.onBackground.withOpacity(0.7),
+                      ).colorScheme.onSurface.withOpacity(0.7),
                     ),
                     textAlign: TextAlign.center,
                   ).animate().fadeIn(delay: 100.ms),

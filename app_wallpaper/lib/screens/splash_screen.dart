@@ -8,7 +8,7 @@ import '../providers/auth_provider.dart';
 import '../providers/wallpaper_provider.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({Key? key}) : super(key: key);
+  const SplashScreen({super.key});
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -39,7 +39,6 @@ class _SplashScreenState extends State<SplashScreen> {
     await wallpaperProvider.fetchCategories();
     await wallpaperProvider.fetchWallpapers(false);
 
-
     // Navigate to appropriate screen
     if (!mounted) return;
     if (authProvider.isLoggedIn) {
@@ -52,7 +51,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Theme.of(context).colorScheme.background,
+      backgroundColor: Theme.of(context).colorScheme.surface,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -116,9 +115,7 @@ class _SplashScreenState extends State<SplashScreen> {
             Text(
               'Beautiful Anime Wallpapers',
               style: AppTheme.bodyStyle.copyWith(
-                color: Theme.of(
-                  context,
-                ).colorScheme.onBackground.withOpacity(0.7),
+                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
               ),
             ).animate().fadeIn(delay: 600.ms, duration: 600.ms),
 

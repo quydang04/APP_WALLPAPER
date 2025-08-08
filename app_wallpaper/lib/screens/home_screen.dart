@@ -4,18 +4,13 @@ import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import '../constants/app_theme.dart';
-import '../models/category.dart';
-import '../models/wallpaper.dart';
 import '../providers/auth_provider.dart';
 import '../providers/wallpaper_provider.dart';
 import '../widgets/category_card.dart';
 import '../widgets/wallpaper_card.dart';
-import 'dart:io';
-import 'package:path_provider/path_provider.dart';
-import 'package:path/path.dart' as path;
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({Key? key}) : super(key: key);
+  const HomeScreen({super.key});
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();

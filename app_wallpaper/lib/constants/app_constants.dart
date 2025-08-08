@@ -1,5 +1,3 @@
-import 'package:flutter/material.dart';
-
 class AppConstants {
   // App info
   static const String appName = "Anime Wallpapers";
@@ -18,7 +16,8 @@ class AppConstants {
   static const String routeUpload = "/upload";
   static const String routePremium = "/premium";
   static const String routeSettings = "/settings";
-  static const String routestock = "C:/Users/admin/Downloads/APP_WALLPAPER-main/uploads";
+  static const String routestock =
+      "C:/Users/admin/Downloads/APP_WALLPAPER-main/uploads";
 
   // Shared Preferences Keys
   static const String prefKeyUser = "user";
@@ -56,7 +55,7 @@ class AppConstants {
   static final List<String> animeCharacters = [
     'Shinji',
     'Ichigo'
-    'Naruto',
+        'Naruto',
     'Sasuke',
     'Luffy',
     'Goku',

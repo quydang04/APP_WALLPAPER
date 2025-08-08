@@ -15,7 +15,7 @@ class WallpaperCard extends StatelessWidget {
   final BorderRadius? borderRadius;
 
   const WallpaperCard({
-    Key? key,
+    super.key,
     required this.wallpaper,
     this.onTap,
     this.showDetails = true,
@@ -23,7 +23,7 @@ class WallpaperCard extends StatelessWidget {
     this.height,
     this.width,
     this.borderRadius,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
