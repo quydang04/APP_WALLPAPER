@@ -24,13 +24,12 @@ class DefaultFirebaseOptions {
         return android;
       case TargetPlatform.iOS:
         return ios;
-      case TargetPlatform.macOS:
-        return macos;
       case TargetPlatform.windows:
         return windows;
+      case TargetPlatform.macOS:
       case TargetPlatform.linux:
         throw UnsupportedError(
-          'DefaultFirebaseOptions have not been configured for linux - '
+          'DefaultFirebaseOptions have not been configured for this platform - '
           'you can reconfigure this by running the FlutterFire CLI again.',
         );
       default:
@@ -70,15 +69,6 @@ class DefaultFirebaseOptions {
     iosBundleId: 'com.example.appWallpaper',
   );
 
-  static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyCA6S3xwWakGxLQa25n55bILbQpQ2kuiKw',
-    appId: '1:280241494674:ios:edb40affb6e5cabff2a44b',
-    messagingSenderId: '280241494674',
-    projectId: 'project7-e7c95',
-    databaseURL: 'https://project7-e7c95-default-rtdb.firebaseio.com',
-    storageBucket: 'project7-e7c95.firebasestorage.app',
-    iosBundleId: 'com.example.appWallpaper',
-  );
 
   static const FirebaseOptions windows = FirebaseOptions(
     apiKey: 'AIzaSyAIbaD5iu_IgWJKBY1xDln-A_wjPfr2K3s',

@@ -24,7 +24,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "hiouuhuu.ii.l"
+        applicationId = "com.example.app_wallpaper"
         minSdk = 23
         targetSdk = flutter.targetSdkVersion
         versionCode = flutter.versionCode

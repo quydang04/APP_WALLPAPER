@@ -1,22 +1,22 @@
 {
   "project_info": {
-    "project_number": "280241494674",
-    "firebase_url": "https://project7-e7c95-default-rtdb.firebaseio.com",
-    "project_id": "project7-e7c95",
-    "storage_bucket": "project7-e7c95.firebasestorage.app"
+    "project_number": "683006294978",
+    "firebase_url": "https://projectfinal-1cb49-default-rtdb.firebaseio.com",
+    "project_id": "projectfinal-1cb49",
+    "storage_bucket": "projectfinal-1cb49.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:280241494674:android:e481f705510bf7acf2a44b",
+        "mobilesdk_app_id": "1:683006294978:android:b88c5a89c341c552f9745b",
         "android_client_info": {
-          "package_name": "hiouuhuu.ii.l"
+          "package_name": "com.example.app_wallpaper"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyCaH8D50cqp-4EwZMRHT7xS6x0E7TQSNT8"
+          "current_key": "AIzaSyB24_8HMUSKolcOD6-51Lt33mCndIsiU-s"
         }
       ],
       "services": {
