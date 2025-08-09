@@ -41,48 +41,54 @@ class DefaultFirebaseOptions {
   }
 
   static const FirebaseOptions web = FirebaseOptions(
-    apiKey: 'AIzaSyDPy6AQWNpBdMBXJRi8T4mlO0hFuhTMm3k',
-    appId: '1:855235878644:web:6bc90f38e2e0ae159908a1',
-    messagingSenderId: '855235878644',
-    projectId: 'appwallpaper-1dceb',
-    authDomain: 'appwallpaper-1dceb.firebaseapp.com',
-    storageBucket: 'appwallpaper-1dceb.firebasestorage.app',
-    measurementId: 'G-VDSDHT3MFM',
+    apiKey: 'AIzaSyAIbaD5iu_IgWJKBY1xDln-A_wjPfr2K3s',
+    appId: '1:280241494674:web:f177febe7fe74b6ef2a44b',
+    messagingSenderId: '280241494674',
+    projectId: 'project7-e7c95',
+    authDomain: 'project7-e7c95.firebaseapp.com',
+    databaseURL: 'https://project7-e7c95-default-rtdb.firebaseio.com',
+    storageBucket: 'project7-e7c95.firebasestorage.app',
+    measurementId: 'G-4JW4H9QVDG',
   );
 
   static const FirebaseOptions android = FirebaseOptions(
-    apiKey: 'AIzaSyDP4uj9gwQko94vmdTBhWi-ikGTU-21zcY',
-    appId: '1:855235878644:android:355b4722337970839908a1',
-    messagingSenderId: '855235878644',
-    projectId: 'appwallpaper-1dceb',
-    storageBucket: 'appwallpaper-1dceb.firebasestorage.app',
+    apiKey: 'AIzaSyCaH8D50cqp-4EwZMRHT7xS6x0E7TQSNT8',
+    appId: '1:280241494674:android:e481f705510bf7acf2a44b',
+    messagingSenderId: '280241494674',
+    projectId: 'project7-e7c95',
+    databaseURL: 'https://project7-e7c95-default-rtdb.firebaseio.com',
+    storageBucket: 'project7-e7c95.firebasestorage.app',
   );
 
   static const FirebaseOptions ios = FirebaseOptions(
-    apiKey: 'AIzaSyALIaQj-yOLBC7aWTftWg_gvR9ssOrEaho',
-    appId: '1:855235878644:ios:d960ba420bf0bcf29908a1',
-    messagingSenderId: '855235878644',
-    projectId: 'appwallpaper-1dceb',
-    storageBucket: 'appwallpaper-1dceb.firebasestorage.app',
+    apiKey: 'AIzaSyCA6S3xwWakGxLQa25n55bILbQpQ2kuiKw',
+    appId: '1:280241494674:ios:edb40affb6e5cabff2a44b',
+    messagingSenderId: '280241494674',
+    projectId: 'project7-e7c95',
+    databaseURL: 'https://project7-e7c95-default-rtdb.firebaseio.com',
+    storageBucket: 'project7-e7c95.firebasestorage.app',
     iosBundleId: 'com.example.appWallpaper',
   );
 
   static const FirebaseOptions macos = FirebaseOptions(
-    apiKey: 'AIzaSyALIaQj-yOLBC7aWTftWg_gvR9ssOrEaho',
-    appId: '1:855235878644:ios:d960ba420bf0bcf29908a1',
-    messagingSenderId: '855235878644',
-    projectId: 'appwallpaper-1dceb',
-    storageBucket: 'appwallpaper-1dceb.firebasestorage.app',
+    apiKey: 'AIzaSyCA6S3xwWakGxLQa25n55bILbQpQ2kuiKw',
+    appId: '1:280241494674:ios:edb40affb6e5cabff2a44b',
+    messagingSenderId: '280241494674',
+    projectId: 'project7-e7c95',
+    databaseURL: 'https://project7-e7c95-default-rtdb.firebaseio.com',
+    storageBucket: 'project7-e7c95.firebasestorage.app',
     iosBundleId: 'com.example.appWallpaper',
   );
 
   static const FirebaseOptions windows = FirebaseOptions(
-    apiKey: 'AIzaSyDPy6AQWNpBdMBXJRi8T4mlO0hFuhTMm3k',
-    appId: '1:855235878644:web:c17f26c75948fa7f9908a1',
-    messagingSenderId: '855235878644',
-    projectId: 'appwallpaper-1dceb',
-    authDomain: 'appwallpaper-1dceb.firebaseapp.com',
-    storageBucket: 'appwallpaper-1dceb.firebasestorage.app',
-    measurementId: 'G-R9TS6GLSEK',
+    apiKey: 'AIzaSyAIbaD5iu_IgWJKBY1xDln-A_wjPfr2K3s',
+    appId: '1:280241494674:web:b07809241536c39df2a44b',
+    messagingSenderId: '280241494674',
+    projectId: 'project7-e7c95',
+    authDomain: 'project7-e7c95.firebaseapp.com',
+    databaseURL: 'https://project7-e7c95-default-rtdb.firebaseio.com',
+    storageBucket: 'project7-e7c95.firebasestorage.app',
+    measurementId: 'G-2FEHL9BJDS',
   );
+
 }
